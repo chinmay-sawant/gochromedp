@@ -15,6 +15,22 @@ function App() {
 
   return (
     <div>
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '-30px',
+        transform: 'rotate(-45deg)',
+        background: '#ff6b6b',
+        color: 'white',
+        padding: '5px 40px',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        zIndex: 1000,
+        boxShadow: '0 0 10px rgba(0,0,0,0.3)',
+        border: '2px solid #d63031'
+      }}>
+        BETA MODE
+      </div>
       <WaveBackground />
       <div className="container">
         <button className="toggle-btn" onClick={toggleTheme}>
@@ -54,19 +70,16 @@ function App() {
           </ul>
           <h3>Install from source</h3>
           <pre>
-            <code>
-              git clone https://github.com/chinmay-sawant/gochromedp.git 
-              cd gochromedp 
-              go mod download go build -o gochromedp ./cmd/gochromedp
-            </code>
+            <code>{`git clone https://github.com/chinmay-sawant/gochromedp.git
+cd gochromedp
+go mod download
+go build -o gochromedp ./cmd/gochromedp`}</code>
           </pre>
           <h3>Install pre-built binary</h3>
           <pre>
-            <code>
-             download from releases page 
-              or build and install globally 
-              go install github.com/chinmay-sawant/gochromedp/cmd/gochromedp@latest
-            </code>
+            <code>{`# Download from releases page
+# or build and install globally:
+go install github.com/chinmay-sawant/gochromedp/cmd/gochromedp@latest`}</code>
           </pre>
         </section>
 
@@ -79,13 +92,14 @@ function App() {
           <p>Available commands: pdf, image, version</p>
           <h3>Convert URL to PDF</h3>
           <pre>
-            <code>
-              # Basic conversion gochromedp pdf https://example.com output.pdf #
-              With custom page size and margins gochromedp pdf --page-size A4
-              --margin-top 20mm --margin-bottom 20mm https://example.com
-              document.pdf # Landscape orientation gochromedp pdf --orientation
-              landscape --page-size A3 https://example.com landscape.pdf
-            </code>
+            <code>{`# Basic conversion
+gochromedp pdf https://example.com output.pdf
+
+# With custom page size and margins
+gochromedp pdf --page-size A4 --margin-top 20mm --margin-bottom 20mm https://example.com document.pdf
+
+# Landscape orientation
+gochromedp pdf --orientation landscape --page-size A3 https://example.com landscape.pdf`}</code>
           </pre>
           <h3>Convert HTML file to PDF</h3>
           <pre>
@@ -93,12 +107,11 @@ function App() {
           </pre>
           <h3>Convert URL to Image</h3>
           <pre>
-            <code>
-              # PNG screenshot (default) gochromedp image --width 1920 --height
-              1080 https://example.com screenshot.png # JPEG with quality
-              setting gochromedp image --format jpeg --quality 85 --width 1024
-              --height 768 https://example.com photo.jpg
-            </code>
+            <code>{`# PNG screenshot (default)
+gochromedp image --width 1920 --height 1080 https://example.com screenshot.png
+
+# JPEG with quality setting
+gochromedp image --format jpeg --quality 85 --width 1024 --height 768 https://example.com photo.jpg`}</code>
           </pre>
           <h3>Convert HTML file to Image</h3>
           <pre>
@@ -226,18 +239,14 @@ func main() {
           </pre>
           <h3>Webpage to high-res screenshot</h3>
           <pre>
-            <code>
-              gochromedp image --width 1920 --height 1080 --quality 95
-              https://github.com screenshot.png
-            </code>
+            <code>{`gochromedp image --width 1920 --height 1080 --quality 95
+https://github.com screenshot.png`}</code>
           </pre>
           <h3>Custom margins and page size</h3>
           <pre>
-            <code>
-              gochromedp pdf --page-size Letter --margin-top 25mm
-              --margin-bottom 25mm --margin-left 20mm --margin-right 20mm
-              document.html print.pdf
-            </code>
+            <code>{`gochromedp pdf --page-size Letter --margin-top 25mm
+--margin-bottom 25mm --margin-left 20mm --margin-right 20mm
+document.html print.pdf`}</code>
           </pre>
           <h3>Batch conversion script</h3>
           <pre>
@@ -323,10 +332,13 @@ done`}</code>
           <h3>"Chrome/Chromium not found"</h3>
           <p>Ensure Chrome or Chromium is installed and accessible:</p>
           <pre>
-            <code>
-              # Linux sudo apt-get install chromium-browser # macOS brew install
-              chromium # Windows - Download from https://www.chromium.org/
-            </code>
+            <code>{`# Linux
+sudo apt-get install chromium-browser
+
+# macOS
+brew install chromium
+
+# Windows - Download from https://www.chromium.org/`}</code>
           </pre>
           <h3>"Connection refused" errors</h3>
           <p>
@@ -336,16 +348,15 @@ done`}</code>
           <h3>Memory issues</h3>
           <p>For large documents, increase memory limits:</p>
           <pre>
-            <code>
-              gochromedp pdf --memory-pressure-off large-document.html
-              output.pdf
-            </code>
+            <code>{`gochromedp pdf --memory-pressure-off large-document.html
+output.pdf`}</code>
           </pre>
         </section>
 
         <footer>
           <p>MIT License - see LICENSE file for details.</p>
           <p>Built with ❤️ using Go and Chromium</p>
+          <p>Application is in <strong>Beta mode</strong> and might have breaking changes.</p>
         </footer>
       </div>
     </div>

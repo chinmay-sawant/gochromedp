@@ -13,7 +13,7 @@
   position: absolute;
   width: 120%;
   height: 120%;
-  opacity: 0.1;
+  opacity: 0.08;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   animation-direction: alternate;
@@ -27,25 +27,37 @@
 
 .wave1 {
   color: #4c9aff;
-  animation: wave-movement-1 12s ease-in-out infinite;
-  top: -20%;
-  left: -10%;
+  animation: wave-movement-1 15s ease-in-out infinite;
+  top: -25%;
+  left: -15%;
+  opacity: 0.12;
 }
 
 .wave2 {
   color: #00d4aa;
-  animation: wave-movement-2 15s ease-in-out infinite;
-  top: -15%;
-  left: -5%;
-  animation-delay: -2s;
+  animation: wave-movement-2 20s ease-in-out infinite;
+  top: -20%;
+  left: -10%;
+  animation-delay: -3s;
+  opacity: 0.1;
 }
 
 .wave3 {
   color: #ff9f43;
-  animation: wave-movement-3 18s ease-in-out infinite;
-  top: -10%;
-  left: -15%;
-  animation-delay: -4s;
+  animation: wave-movement-3 25s ease-in-out infinite;
+  top: -15%;
+  left: -20%;
+  animation-delay: -6s;
+  opacity: 0.08;
+}
+
+.wave4 {
+  color: #e74c3c;
+  animation: wave-movement-4 30s ease-in-out infinite;
+  top: -30%;
+  left: -25%;
+  animation-delay: -9s;
+  opacity: 0.06;
 }
 
 @keyframes wave-movement-1 {
@@ -53,11 +65,14 @@
   100% {
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
-  33% {
-    transform: translate3d(30px, -30px, 0) rotate(1deg) scale(1.02);
+  25% {
+    transform: translate3d(40px, -20px, 0) rotate(0.5deg) scale(1.05);
   }
-  66% {
-    transform: translate3d(-20px, 20px, 0) rotate(-1deg) scale(0.98);
+  50% {
+    transform: translate3d(-30px, 30px, 0) rotate(-0.8deg) scale(0.95);
+  }
+  75% {
+    transform: translate3d(20px, -40px, 0) rotate(1deg) scale(1.02);
   }
 }
 
@@ -66,14 +81,17 @@
   100% {
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
-  25% {
-    transform: translate3d(-25px, 15px, 0) rotate(-1.5deg) scale(1.01);
+  20% {
+    transform: translate3d(-35px, 25px, 0) rotate(-1deg) scale(1.03);
   }
-  50% {
-    transform: translate3d(40px, -25px, 0) rotate(1.2deg) scale(0.99);
+  40% {
+    transform: translate3d(50px, -35px, 0) rotate(1.2deg) scale(0.97);
   }
-  75% {
-    transform: translate3d(-15px, 35px, 0) rotate(-0.8deg) scale(1.02);
+  60% {
+    transform: translate3d(-20px, 45px, 0) rotate(-0.5deg) scale(1.04);
+  }
+  80% {
+    transform: translate3d(30px, -15px, 0) rotate(0.8deg) scale(0.98);
   }
 }
 
@@ -82,17 +100,51 @@
   100% {
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
-  20% {
-    transform: translate3d(20px, -40px, 0) rotate(0.5deg) scale(1.01);
+  15% {
+    transform: translate3d(25px, -50px, 0) rotate(0.3deg) scale(1.06);
   }
-  40% {
-    transform: translate3d(-30px, 10px, 0) rotate(-1deg) scale(0.98);
+  30% {
+    transform: translate3d(-45px, 15px, 0) rotate(-1.2deg) scale(0.94);
+  }
+  45% {
+    transform: translate3d(35px, 35px, 0) rotate(1.5deg) scale(1.01);
   }
   60% {
-    transform: translate3d(25px, 25px, 0) rotate(1.5deg) scale(1.03);
+    transform: translate3d(-15px, -30px, 0) rotate(-0.7deg) scale(0.99);
   }
-  80% {
-    transform: translate3d(-10px, -20px, 0) rotate(-0.7deg) scale(0.99);
+  75% {
+    transform: translate3d(45px, 20px, 0) rotate(0.9deg) scale(1.05);
+  }
+  90% {
+    transform: translate3d(-25px, -45px, 0) rotate(-1deg) scale(0.96);
+  }
+}
+
+@keyframes wave-movement-4 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  12% {
+    transform: translate3d(50px, -30px, 0) rotate(0.4deg) scale(1.08);
+  }
+  25% {
+    transform: translate3d(-40px, 40px, 0) rotate(-1.3deg) scale(0.92);
+  }
+  37% {
+    transform: translate3d(30px, 50px, 0) rotate(1.8deg) scale(1.03);
+  }
+  50% {
+    transform: translate3d(-50px, -20px, 0) rotate(-0.6deg) scale(0.97);
+  }
+  62% {
+    transform: translate3d(45px, -45px, 0) rotate(1.1deg) scale(1.06);
+  }
+  75% {
+    transform: translate3d(-20px, 30px, 0) rotate(-1.4deg) scale(0.94);
+  }
+  87% {
+    transform: translate3d(35px, 25px, 0) rotate(0.7deg) scale(1.02);
   }
 }
 
@@ -141,18 +193,23 @@
   }
 
   .wave1 {
+    top: -35%;
+    left: -30%;
+  }
+
+  .wave2 {
     top: -30%;
     left: -25%;
   }
 
-  .wave2 {
+  .wave3 {
     top: -25%;
-    left: -20%;
+    left: -35%;
   }
 
-  .wave3 {
-    top: -20%;
-    left: -30%;
+  .wave4 {
+    top: -40%;
+    left: -40%;
   }
 }
 

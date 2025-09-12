@@ -138,6 +138,8 @@ code {
   font-size: 0.9em;
   border: 1px solid var(--border-color);
   color: var(--accent-color);
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 pre {
@@ -150,6 +152,14 @@ pre {
   font-size: 0.9em;
   line-height: 1.5;
   position: relative;
+  white-space: pre-wrap;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  border: none;
+  white-space: pre-wrap;
 }
 
 pre:hover {
