@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	version      = "1.0.0"
+	version      = "1.1.0"
 	pageSize     string
 	orientation  string
 	marginTop    string
@@ -22,6 +22,7 @@ var (
 	quality      int
 	width        int
 	height       int
+	htmlOutput   string
 )
 
 var rootCmd = &cobra.Command{
@@ -73,6 +74,22 @@ var imageCmd = &cobra.Command{
 	},
 }
 
+var htmlCmd = &cobra.Command{
+	Use:   "html [input] [output]",
+	Short: "Convert HTML to HTML",
+	Long:  `Convert HTML content from a file or URL to HTML format (extracts rendered HTML).`,
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		input := args[0]
+		output := args[1]
+
+		if err := convertToHTML(input, output); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("✅ Successfully converted %s to %s\n", input, output)
+	},
+}
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
@@ -99,9 +116,11 @@ func init() {
 	imageCmd.Flags().IntVar(&quality, "quality", 90, "Image quality (1-100, for JPEG)")
 	imageCmd.Flags().IntVar(&width, "width", 1024, "Viewport width")
 	imageCmd.Flags().IntVar(&height, "height", 768, "Viewport height")
+	imageCmd.Flags().StringVar(&htmlOutput, "html-output", "", "Also save HTML content to specified file")
 
 	rootCmd.AddCommand(pdfCmd)
 	rootCmd.AddCommand(imageCmd)
+	rootCmd.AddCommand(htmlCmd)
 	rootCmd.AddCommand(versionCmd)
 }
 
@@ -146,25 +165,93 @@ func convertToImage(input, output string) error {
 	}
 
 	var data []byte
+	var htmlContent string
 	var err error
 
 	// Check if input is a URL or file
 	if strings.HasPrefix(input, "http://") || strings.HasPrefix(input, "https://") {
 		data, err = gochromedp.ConvertURLToImage(input, options)
+		if err != nil {
+			return err
+		}
+		
+		// Also get HTML content if htmlOutput is specified
+		if htmlOutput != "" {
+			htmlContent, err = gochromedp.ConvertURLToHTML(input, options)
+			if err != nil {
+				return fmt.Errorf("failed to get HTML content: %v", err)
+			}
+		}
 	} else {
 		// Read HTML file
-		htmlContent, readErr := os.ReadFile(input)
+		htmlFileContent, readErr := os.ReadFile(input)
 		if readErr != nil {
 			return fmt.Errorf("failed to read input file: %v", readErr)
 		}
-		data, err = gochromedp.ConvertHTMLToImage(string(htmlContent), options)
+		data, err = gochromedp.ConvertHTMLToImage(string(htmlFileContent), options)
+		if err != nil {
+			return err
+		}
+		
+		// Also get HTML content if htmlOutput is specified
+		if htmlOutput != "" {
+			htmlContent, err = gochromedp.ConvertHTMLToHTML(string(htmlFileContent), options)
+			if err != nil {
+				return fmt.Errorf("failed to get HTML content: %v", err)
+			}
+		}
 	}
 
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(output, data, 0644)
+	// Write image file
+	if err := os.WriteFile(output, data, 0644); err != nil {
+		return err
+	}
+	
+	// Write HTML file if requested
+	if htmlOutput != "" {
+		if err := os.WriteFile(htmlOutput, []byte(htmlContent), 0644); err != nil {
+			return fmt.Errorf("failed to write HTML output: %v", err)
+		}
+		fmt.Printf("✅ Successfully saved HTML content to %s\n", htmlOutput)
+	}
+
+	return nil
+}
+
+func convertToHTML(input, output string) error {
+	options := &gochromedp.ConvertOptions{
+		PageSize:     pageSize,
+		Orientation:  orientation,
+		MarginTop:    marginTop,
+		MarginRight:  marginRight,
+		MarginBottom: marginBottom,
+		MarginLeft:   marginLeft,
+	}
+
+	var htmlContent string
+	var err error
+
+	// Check if input is a URL or file
+	if strings.HasPrefix(input, "http://") || strings.HasPrefix(input, "https://") {
+		htmlContent, err = gochromedp.ConvertURLToHTML(input, options)
+	} else {
+		// Read HTML file
+		fileContent, readErr := os.ReadFile(input)
+		if readErr != nil {
+			return fmt.Errorf("failed to read input file: %v", readErr)
+		}
+		htmlContent, err = gochromedp.ConvertHTMLToHTML(string(fileContent), options)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(output, []byte(htmlContent), 0644)
 }
 
 func main() {
