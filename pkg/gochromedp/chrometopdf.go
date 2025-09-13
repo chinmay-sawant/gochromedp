@@ -82,18 +82,18 @@ func ConvertHTMLToPDF(htmlContent string, options *ConvertOptions) ([]byte, erro
 			var err error
 			// Set up PDF print options
 			printParams := page.PrintToPDFParams{
-				Landscape:           strings.ToLower(options.Orientation) == "landscape",
-				PrintBackground:     true,
-				PreferCSSPageSize:   false,
+				Landscape:         strings.ToLower(options.Orientation) == "landscape",
+				PrintBackground:   true,
+				PreferCSSPageSize: false,
 			}
-			
+
 			// Set page size
 			if options.PageSize != "" {
 				width, height := getPageDimensions(options.PageSize, strings.ToLower(options.Orientation) == "landscape")
 				printParams.PaperWidth = width
 				printParams.PaperHeight = height
 			}
-			
+
 			// Set margins
 			if options.MarginTop != "" {
 				margin := parseMarginValue(options.MarginTop)
@@ -111,7 +111,7 @@ func ConvertHTMLToPDF(htmlContent string, options *ConvertOptions) ([]byte, erro
 				margin := parseMarginValue(options.MarginRight)
 				printParams.MarginRight = margin
 			}
-			
+
 			pdfData, _, err = printParams.Do(ctx)
 			return err
 		}),
@@ -155,18 +155,18 @@ func ConvertURLToPDF(url string, options *ConvertOptions) ([]byte, error) {
 			var err error
 			// Set up PDF print options
 			printParams := page.PrintToPDFParams{
-				Landscape:           strings.ToLower(options.Orientation) == "landscape",
-				PrintBackground:     true,
-				PreferCSSPageSize:   false,
+				Landscape:         strings.ToLower(options.Orientation) == "landscape",
+				PrintBackground:   true,
+				PreferCSSPageSize: false,
 			}
-			
+
 			// Set page size
 			if options.PageSize != "" {
 				width, height := getPageDimensions(options.PageSize, strings.ToLower(options.Orientation) == "landscape")
 				printParams.PaperWidth = width
 				printParams.PaperHeight = height
 			}
-			
+
 			// Set margins
 			if options.MarginTop != "" {
 				margin := parseMarginValue(options.MarginTop)
@@ -184,7 +184,7 @@ func ConvertURLToPDF(url string, options *ConvertOptions) ([]byte, error) {
 				margin := parseMarginValue(options.MarginRight)
 				printParams.MarginRight = margin
 			}
-			
+
 			pdfData, _, err = printParams.Do(ctx)
 			return err
 		}),
@@ -220,20 +220,36 @@ func ConvertHTMLToImage(htmlContent string, options *ConvertOptions) ([]byte, er
 	taskCtx, cancelTask := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
 	defer cancelTask()
 
-	// Set viewport size
-	if err := chromedp.Run(taskCtx,
-		emulation.SetDeviceMetricsOverride(int64(options.Width), int64(options.Height), 1.0, false),
-	); err != nil {
-		return nil, fmt.Errorf("failed to set device metrics: %v", err)
-	}
-
 	// Navigate to data URL with HTML content
 	dataURL := "data:text/html;base64," + base64.StdEncoding.EncodeToString([]byte(htmlContent))
 
 	var imageData []byte
+	var fullHeight int64
+
+	// First, navigate and get the full document height
 	err := chromedp.Run(taskCtx,
 		chromedp.Navigate(dataURL),
 		chromedp.WaitReady("body"),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			// Get the full document height
+			var height int
+			err := chromedp.Evaluate(`Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)`, &height).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to get document height: %v", err)
+			}
+			// Add 10% buffer to ensure we capture all content
+			fullHeight = int64(float64(height) * 1.1)
+			return nil
+		}),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document height: %v", err)
+	}
+
+	// Now set viewport to full page height and capture screenshot
+	err = chromedp.Run(taskCtx,
+		emulation.SetDeviceMetricsOverride(int64(options.Width), fullHeight, 1.0, false),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			var err error
 			imageData, err = page.CaptureScreenshot().Do(ctx)
@@ -271,17 +287,33 @@ func ConvertURLToImage(url string, options *ConvertOptions) ([]byte, error) {
 	taskCtx, cancelTask := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
 	defer cancelTask()
 
-	// Set viewport size
-	if err := chromedp.Run(taskCtx,
-		emulation.SetDeviceMetricsOverride(int64(options.Width), int64(options.Height), 1.0, false),
-	); err != nil {
-		return nil, fmt.Errorf("failed to set device metrics: %v", err)
-	}
-
 	var imageData []byte
+	var fullHeight int64
+
+	// First, navigate and get the full document height
 	err := chromedp.Run(taskCtx,
 		chromedp.Navigate(url),
 		chromedp.WaitReady("body"),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			// Get the full document height
+			var height int
+			err := chromedp.Evaluate(`Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)`, &height).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to get document height: %v", err)
+			}
+			// Add 10% buffer to ensure we capture all content
+			fullHeight = int64(float64(height) * 1.1)
+			return nil
+		}),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document height: %v", err)
+	}
+
+	// Now set viewport to full page height and capture screenshot
+	err = chromedp.Run(taskCtx,
+		emulation.SetDeviceMetricsOverride(int64(options.Width), fullHeight, 1.0, false),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			var err error
 			imageData, err = page.CaptureScreenshot().Do(ctx)
