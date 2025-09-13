@@ -2,9 +2,10 @@ package gochromedp
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
-	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,7 +72,7 @@ func ConvertHTMLToPDF(htmlContent string, options *ConvertOptions) ([]byte, erro
 	defer cancelTask()
 
 	// Navigate to data URL with HTML content
-	dataURL := "data:text/html;charset=utf-8," + url.QueryEscape(htmlContent)
+	dataURL := "data:text/html;base64," + base64.StdEncoding.EncodeToString([]byte(htmlContent))
 
 	var pdfData []byte
 	err := chromedp.Run(taskCtx,
@@ -79,7 +80,39 @@ func ConvertHTMLToPDF(htmlContent string, options *ConvertOptions) ([]byte, erro
 		chromedp.WaitReady("body"),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			var err error
-			pdfData, _, err = page.PrintToPDF().Do(ctx)
+			// Set up PDF print options
+			printParams := page.PrintToPDFParams{
+				Landscape:           strings.ToLower(options.Orientation) == "landscape",
+				PrintBackground:     true,
+				PreferCSSPageSize:   false,
+			}
+			
+			// Set page size
+			if options.PageSize != "" {
+				width, height := getPageDimensions(options.PageSize, strings.ToLower(options.Orientation) == "landscape")
+				printParams.PaperWidth = width
+				printParams.PaperHeight = height
+			}
+			
+			// Set margins
+			if options.MarginTop != "" {
+				margin := parseMarginValue(options.MarginTop)
+				printParams.MarginTop = margin
+			}
+			if options.MarginBottom != "" {
+				margin := parseMarginValue(options.MarginBottom)
+				printParams.MarginBottom = margin
+			}
+			if options.MarginLeft != "" {
+				margin := parseMarginValue(options.MarginLeft)
+				printParams.MarginLeft = margin
+			}
+			if options.MarginRight != "" {
+				margin := parseMarginValue(options.MarginRight)
+				printParams.MarginRight = margin
+			}
+			
+			pdfData, _, err = printParams.Do(ctx)
 			return err
 		}),
 	)
@@ -120,7 +153,39 @@ func ConvertURLToPDF(url string, options *ConvertOptions) ([]byte, error) {
 		chromedp.WaitReady("body"),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			var err error
-			pdfData, _, err = page.PrintToPDF().Do(ctx)
+			// Set up PDF print options
+			printParams := page.PrintToPDFParams{
+				Landscape:           strings.ToLower(options.Orientation) == "landscape",
+				PrintBackground:     true,
+				PreferCSSPageSize:   false,
+			}
+			
+			// Set page size
+			if options.PageSize != "" {
+				width, height := getPageDimensions(options.PageSize, strings.ToLower(options.Orientation) == "landscape")
+				printParams.PaperWidth = width
+				printParams.PaperHeight = height
+			}
+			
+			// Set margins
+			if options.MarginTop != "" {
+				margin := parseMarginValue(options.MarginTop)
+				printParams.MarginTop = margin
+			}
+			if options.MarginBottom != "" {
+				margin := parseMarginValue(options.MarginBottom)
+				printParams.MarginBottom = margin
+			}
+			if options.MarginLeft != "" {
+				margin := parseMarginValue(options.MarginLeft)
+				printParams.MarginLeft = margin
+			}
+			if options.MarginRight != "" {
+				margin := parseMarginValue(options.MarginRight)
+				printParams.MarginRight = margin
+			}
+			
+			pdfData, _, err = printParams.Do(ctx)
 			return err
 		}),
 	)
@@ -163,7 +228,7 @@ func ConvertHTMLToImage(htmlContent string, options *ConvertOptions) ([]byte, er
 	}
 
 	// Navigate to data URL with HTML content
-	dataURL := "data:text/html;charset=utf-8," + url.QueryEscape(htmlContent)
+	dataURL := "data:text/html;base64," + base64.StdEncoding.EncodeToString([]byte(htmlContent))
 
 	var imageData []byte
 	err := chromedp.Run(taskCtx,
@@ -233,8 +298,8 @@ func ConvertURLToImage(url string, options *ConvertOptions) ([]byte, error) {
 
 // Helper functions
 
-func parseDimension(pageSize, orientation string, isWidth bool) float64 {
-	// Standard page sizes in inches (converted to inches for chromedp)
+func getPageDimensions(pageSize string, landscape bool) (float64, float64) {
+	// Standard page sizes in inches
 	sizes := map[string][2]float64{
 		"a4":     {8.27, 11.69},
 		"a3":     {11.69, 16.54},
@@ -247,31 +312,34 @@ func parseDimension(pageSize, orientation string, isWidth bool) float64 {
 		size = sizes["a4"] // default
 	}
 
-	if orientation == "landscape" {
+	if landscape {
 		// Swap width and height for landscape
-		if isWidth {
-			return size[1]
-		}
-		return size[0]
+		return size[1], size[0]
 	}
-	if isWidth {
-		return size[0]
-	}
-	return size[1]
+	return size[0], size[1]
 }
 
-func parseMargin(margin string) float64 {
-	// Simple margin parsing - assumes mm for now
-	// Could be extended to support different units
+func parseMarginValue(margin string) float64 {
+	// Parse margin values (supports mm, cm, in)
+	// Convert to inches for chromedp
 	if strings.HasSuffix(margin, "mm") {
-		var value float64
-		fmt.Sscanf(margin, "%fmm", &value)
-		return value / 25.4 // convert mm to inches
+		if v, err := strconv.ParseFloat(strings.TrimSuffix(margin, "mm"), 64); err == nil {
+			return v / 25.4 // mm to inches
+		}
+	}
+	if strings.HasSuffix(margin, "cm") {
+		if v, err := strconv.ParseFloat(strings.TrimSuffix(margin, "cm"), 64); err == nil {
+			return v / 2.54 // cm to inches
+		}
 	}
 	if strings.HasSuffix(margin, "in") {
-		var value float64
-		fmt.Sscanf(margin, "%fin", &value)
-		return value
+		if v, err := strconv.ParseFloat(strings.TrimSuffix(margin, "in"), 64); err == nil {
+			return v
+		}
+	}
+	// Try to parse as plain number (assume mm)
+	if v, err := strconv.ParseFloat(margin, 64); err == nil {
+		return v / 25.4 // assume mm
 	}
 	// Default to 10mm
 	return 10.0 / 25.4
